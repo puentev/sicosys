@@ -20,4 +20,4 @@ the router you can read some publications on www.atc.unican.es or Dally's Book.
 --
 vpuente
 
-[old page](https://www.atc.unican.es/%7evpuente/SICOSYS/index_old.htm)
+[old page](http://www.atc.unican.es/%7evpuente/SICOSYS/index_old.html)
