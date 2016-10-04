@@ -1,0 +1,583 @@
+#**************************************************************************
+#
+# Fichero    : GNUMakefile
+#
+# Comentarios: Fichero make para el ATCSimul Requiere gmake
+#              permite deshabilitar la parte de simulacion conducida por
+#              trazas (portabilidad)
+#
+# Autor      : 
+#
+# $RCSfile: Makefile.Std,v $
+#
+# $Date: 2001/10/08 05:43:08 $
+#
+# $Revision: 1.1.1.1 $
+#
+# $Log: Makefile.Std,v $
+# Revision 1.1.1.1  2001/10/08 05:43:08  vpuente
+# Revision previa a SC2001
+#
+# Revision 1.1.1.1  2001/10/07 17:28:18  vpuente
+# Nuevo repositorio en marrajo 
+#
+# Revision 1.1.2.1  2001/02/14 09:25:38  esteban
+# Sustitucion de Makefile por GNUMakefile y renombrado de Makefile a
+# Makefile.Std
+#
+# Revision 1.1.1.1.4.1  2001/02/01 12:57:13  vpuente
+# "Se incorpora control mas optimizado del Pool"
+#
+# Revision 1.1.4.2  2000/12/20 10:31:45  esteban
+# Manejo de mensajes con punteros
+#
+# Revision 1.1.4.1  2000/12/18 13:53:55  esteban
+# Eliminacion de classes no esenciales
+#
+# Revision 1.1  2000/11/22 00:54:52  vpuente
+# make para gnumake con o sin rwtool en la simulacion conducida por trazas
+#
+#**************************************************************************
+# Habilita el empleo de simulacion conducida por trazas. Por defecto dejarlo 
+#deshabilitado ya que hace que el simulador no sea completamente portable
+#USE_SCT = YES
+ifdef USE_SCT
+INC1=/usr/freeware/include
+LIBS= -lz -lrwtool
+else
+EXCL_SCT= -DNO_SCT
+endif
+PATH_INC  = ../inc  $(INC1) 
+PATH_SRC  = ../src
+PATH_LIB  = . -L../lib
+PATH_OBJ  = ./OBJS
+TARGET    = ATCSimul 
+ATC_DLL   = libatcs.so
+ATC_LIB   = libatcs.a
+TRAZA     = -DNO_TRAZA   #trace off 
+UNPAQ     = #-DPAQ       #Solo se envian dos paquetes (nodo 0->1)
+UNIROUTER = #-DUNIROUTER #Compilado especial para probar un router aislado
+                         #con inyectores sinteticos en todos sus puertos.
+                         #no se asume en tiempo de compilacion. Simplemente
+                         #es para mejorar un poco el rendimiento (en lo inyec)
+# *************************************************************************
+
+CDEBUG_OPTS = -n32  -c -g $(TRAZA)  $(UNIROUTER) $(UNPAQ) -I$(PATH_INC) -woff 1682 -woff 1174 -o $@
+LDEBUG_OPTS = -n32   -g $(TRAZA) $(UNIROUTER) $(UNPAQ) -L$(PATH_LIB) -o $(TARGET)   #-lmalloc_cv
+DDEBUG_OPTS = -n32  -shared -g $(TRAZA) $(UNPAQ) $(UNIROUTER) -o $(ATC_DLL)
+
+CFAST_OPTS  = -n32  -c -O3 -r10000 -SWP:=ON -I$(PATH_INC) $(TRAZA) $(UNPAQ) $(UNIROUTER) -woff 1174 -woff 1682 -o $@
+LFAST_OPTS  = -n32  -O3 -IPA -r10000 -SWP:=ON -woff all -L$(PATH_LIB) -o $(TARGET)  
+DFAST_OPTS  = -n32  -v -shared -O3 -r10000 -SWP:=ON -woff all -o $(ATC_DLL)
+
+# Compilacion Optimizada **************************************************
+
+COMPILER   = CC $(CFAST_OPTS)
+LINKER     = CC $(LFAST_OPTS)
+DLL_LINKER = CC $(DFAST_OPTS)
+
+# Compilacion para debugger ***********************************************
+
+#COMPILER   = CC $(CDEBUG_OPTS)
+#LINKER     = CC $(LDEBUG_OPTS)
+#DLL_BUILD  = CC $(DDEBUG_OPTS)
+
+# *************************************************************************
+
+LIB_BUILD   = CC -ar -o $(ATC_LIB)
+MAKE_DEPEND = CC -P -MDUpdate Makedepend -I$(PATH_INC)
+
+# *************************************************************************
+
+OBJS = $(PATH_OBJ)/ATCSimulator.o \
+   $(PATH_OBJ)/PRZAttribute.o  \
+   $(PATH_OBJ)/PRZBase.o  \
+   $(PATH_OBJ)/PRZBuilder.o  \
+   $(PATH_OBJ)/PRZCrossbarCTFlow.o \
+   $(PATH_OBJ)/PRZCrossbarFlow.o \
+   $(PATH_OBJ)/PRZCompositeComponent.o \
+   $(PATH_OBJ)/PRZConsumerFlow.o \
+   $(PATH_OBJ)/PRZComponentId.o \
+   $(PATH_OBJ)/PRZComponent.o \
+   $(PATH_OBJ)/PRZConnection.o \
+   $(PATH_OBJ)/PRZConst.o \
+   $(PATH_OBJ)/PRZConsumer.o \
+   $(PATH_OBJ)/PRZCrossbar.o \
+   $(PATH_OBJ)/PRZCTFifoMemoryFlow.o \
+   $(PATH_OBJ)/PRZDelayConnection.o \
+   $(PATH_OBJ)/PRZError.o \
+   $(PATH_OBJ)/PRZEvent.o \
+   $(PATH_OBJ)/PRZFifoMemory.o  \
+   $(PATH_OBJ)/PRZFicheroLog.o \
+   $(PATH_OBJ)/PRZFlow.o  \
+   $(PATH_OBJ)/PRZFifoMemoryFlow.o \
+   $(PATH_OBJ)/PRZGauge.o \
+   $(PATH_OBJ)/PRZGlobalData.o \
+   $(PATH_OBJ)/PRZIniFile.o   \
+   $(PATH_OBJ)/PRZInjectorCTFlow.o \
+   $(PATH_OBJ)/PRZInjectorFlow.o \
+   $(PATH_OBJ)/PRZInjector.o \
+   $(PATH_OBJ)/PRZInterfaz.o \
+   $(PATH_OBJ)/PRZInputPort.o \
+   $(PATH_OBJ)/PRZMessage.o  \
+   $(PATH_OBJ)/PRZNetworkBuilder.o \
+   $(PATH_OBJ)/PRZNetwork.o   \
+   $(PATH_OBJ)/PRZNotifier.o \
+   $(PATH_OBJ)/PRZObserver.o \
+   $(PATH_OBJ)/PRZOutputPort.o \
+   $(PATH_OBJ)/PRZOptions.o   \
+   $(PATH_OBJ)/PRZPort.o  \
+   $(PATH_OBJ)/PRZPosition.o   \
+   $(PATH_OBJ)/PRZRoutingBurbleFlow.o \
+   $(PATH_OBJ)/PRZRoutingBurbleFlowH1.o \
+   $(PATH_OBJ)/PRZRouterBuilder.o \
+   $(PATH_OBJ)/PRZRoutingFlow.o \
+   $(PATH_OBJ)/PRZRouter.o \
+   $(PATH_OBJ)/PRZRouting.o \
+   $(PATH_OBJ)/PRZRunTimeInformation.o  \
+   $(PATH_OBJ)/PRZRunnableComponent.o \
+   $(PATH_OBJ)/PRZSimulationBuilder.o \
+   $(PATH_OBJ)/PRZSimulation.o \
+   $(PATH_OBJ)/PRZSimulationDual.o \
+   $(PATH_OBJ)/PRZStringGz.o \
+   $(PATH_OBJ)/PRZTag.o   \
+   $(PATH_OBJ)/PRZTorusNetwork.o \
+   $(PATH_OBJ)/PRZMeshNetwork.o \
+   $(PATH_OBJ)/PRZNullNetwork.o \
+   $(PATH_OBJ)/PRZTrafficPattern.o \
+   $(PATH_OBJ)/PRZString.o
+
+ifdef USE_SCT
+OBJ+=	\
+	$(PATH_OBJ)/PRZTrafficPatternTrace.o \
+	$(PATH_OBJ)/PRZStringGz.o \
+	$(PATH_OBJ)/PRZTrafficPatternTraceDualNet.o 
+endif	
+
+# *************************************************************************
+
+$(TARGET): $(ATC_LIB) $(PATH_OBJ)/PRZMain.o
+	@echo
+	@echo Building executable...
+	$(LINKER) $(PATH_OBJ)/PRZMain.o -latcs $(LIBS)
+	@echo
+	@echo Good luck !
+	@echo
+
+$(ATC_DLL): $(OBJS) $(PATH_OBJ)/PRZMain.o
+	@echo 
+	@echo Building shared library...
+	$(DLL_BUILD) $(OBJS) 
+	@echo Building executable...
+	$(LINKER) $(PATH_OBJ)/PRZMain.o $(ATC_DLL) $(LIBS)
+	@echo
+	@echo Good luck !
+	@echo
+	
+$(ATC_LIB): $(OBJS)
+	@echo 
+	@echo Building static library...
+	$(LIB_BUILD) -lmalloc_cv $(OBJS) 
+
+dll: $(ATC_DLL)
+
+lib: $(TARGET)
+	
+# *************************************************************************
+
+include Makedepend
+
+# *************************************************************************
+
+$(PATH_OBJ)/ATCSimulator.o : $(PATH_SRC)/ATCSimulator.cpp
+	$(COMPILER) $(PATH_SRC)/ATCSimulator.cpp
+
+$(PATH_OBJ)/PRZAttribute.o : $(PATH_SRC)/PRZAttribute.cpp
+	$(COMPILER) $(PATH_SRC)/PRZAttribute.cpp
+
+$(PATH_OBJ)/PRZBase.o : $(PATH_SRC)/PRZBase.cpp
+	$(COMPILER) $(PATH_SRC)/PRZBase.cpp
+
+$(PATH_OBJ)/PRZBuilder.o : $(PATH_SRC)/PRZBuilder.cpp
+	$(COMPILER) $(PATH_SRC)/PRZBuilder.cpp
+
+$(PATH_OBJ)/PRZCrossbarCTFlowOutBuff.o : $(PATH_SRC)/PRZCrossbarCTFlowOutBuff.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarCTFlowOutBuff.cpp
+
+$(PATH_OBJ)/PRZCrossbarWHFlowOutBuff.o : $(PATH_SRC)/PRZCrossbarWHFlowOutBuff.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarWHFlowOutBuff.cpp
+
+$(PATH_OBJ)/PRZCrossbarCTFlow.o : $(PATH_SRC)/PRZCrossbarCTFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarCTFlow.cpp
+
+$(PATH_OBJ)/PRZCrossbarCTFlowMux.o : $(PATH_SRC)/PRZCrossbarCTFlowMux.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarCTFlowMux.cpp
+
+$(PATH_OBJ)/PRZCrossbarFlow.o : $(PATH_SRC)/PRZCrossbarFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarFlow.cpp
+
+$(PATH_OBJ)/PRZCrossbarMuxFlow.o : $(PATH_SRC)/PRZCrossbarMuxFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMuxFlow.cpp
+	
+$(PATH_OBJ)/PRZCrossbarMuxFlowStarFree.o : $(PATH_SRC)/PRZCrossbarMuxFlowStarFree.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMuxFlowStarFree.cpp
+		
+$(PATH_OBJ)/PRZCrossbarNoMuxSeqFlow.o : $(PATH_SRC)/PRZCrossbarNoMuxSeqFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarNoMuxSeqFlow.cpp
+	
+$(PATH_OBJ)/PRZCrossbarMuxFlowOutBuff.o : $(PATH_SRC)/PRZCrossbarMuxFlowOutBuff.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMuxFlowOutBuff.cpp
+
+$(PATH_OBJ)/PRZCrossbarMRequestFlowOutBuff.o : $(PATH_SRC)/PRZCrossbarMRequestFlowOutBuff.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMRequestFlowOutBuff.cpp
+
+$(PATH_OBJ)/PRZCrossbarMRequestFlowCT.o : $(PATH_SRC)/PRZCrossbarMRequestFlowCT.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMRequestFlowCT.cpp
+
+$(PATH_OBJ)/PRZCrossbarMRequestFlowCTOutBuffResumed.o : $(PATH_SRC)/PRZCrossbarMRequestFlowCTOutBuffResumed.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMRequestFlowCTOutBuffResumed.cpp
+
+$(PATH_OBJ)/PRZCrossbarMRequestFlowCTOutBuffResumedVirtual.o : $(PATH_SRC)/PRZCrossbarMRequestFlowCTOutBuffResumedVirtual.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMRequestFlowCTOutBuffResumedVirtual.cpp
+
+$(PATH_OBJ)/PRZCrossbarMRequestFlowCTOutBuff.o : $(PATH_SRC)/PRZCrossbarMRequestFlowCTOutBuff.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMRequestFlowCTOutBuff.cpp
+
+$(PATH_OBJ)/PRZCrossbarMRequestFlow.o : $(PATH_SRC)/PRZCrossbarMRequestFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMRequestFlow.cpp
+
+$(PATH_OBJ)/PRZCompositeComponent.o : $(PATH_SRC)/PRZCompositeComponent.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCompositeComponent.cpp
+
+$(PATH_OBJ)/PRZConsumerFlow.o : $(PATH_SRC)/PRZConsumerFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZConsumerFlow.cpp
+
+$(PATH_OBJ)/PRZComponentId.o : $(PATH_SRC)/PRZComponentId.cpp
+	$(COMPILER) $(PATH_SRC)/PRZComponentId.cpp
+
+$(PATH_OBJ)/PRZComponent.o : $(PATH_SRC)/PRZComponent.cpp
+	$(COMPILER) $(PATH_SRC)/PRZComponent.cpp
+
+$(PATH_OBJ)/PRZConnection.o : $(PATH_SRC)/PRZConnection.cpp
+	$(COMPILER) $(PATH_SRC)/PRZConnection.cpp
+
+$(PATH_OBJ)/PRZConst.o : $(PATH_SRC)/PRZConst.cpp
+	$(COMPILER) $(PATH_SRC)/PRZConst.cpp
+
+$(PATH_OBJ)/PRZConsumer.o : $(PATH_SRC)/PRZConsumer.cpp
+	$(COMPILER) $(PATH_SRC)/PRZConsumer.cpp
+
+$(PATH_OBJ)/PRZCrossbar.o : $(PATH_SRC)/PRZCrossbar.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbar.cpp
+
+$(PATH_OBJ)/PRZCrossbarMRequestSingleWHFlow.o : $(PATH_SRC)/PRZCrossbarMRequestSingleWHFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMRequestSingleWHFlow.cpp
+
+$(PATH_OBJ)/PRZCrossbarMRequestSingleCTFlow.o : $(PATH_SRC)/PRZCrossbarMRequestSingleCTFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbarMRequestSingleCTFlow.cpp
+
+$(PATH_OBJ)/PRZCrossbar3DMRequestSingleCTFlow.o : $(PATH_SRC)/PRZCrossbar3DMRequestSingleCTFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCrossbar3DMRequestSingleCTFlow.cpp
+
+$(PATH_OBJ)/PRZCTMultiportFifoFlow.o : $(PATH_SRC)/PRZCTMultiportFifoFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCTMultiportFifoFlow.cpp
+
+$(PATH_OBJ)/PRZMultiportFifoNoFragFlow.o : $(PATH_SRC)/PRZMultiportFifoNoFragFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMultiportFifoNoFragFlow.cpp
+
+$(PATH_OBJ)/PRZWHMultiportFifoFlow.o : $(PATH_SRC)/PRZWHMultiportFifoFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZWHMultiportFifoFlow.cpp
+
+$(PATH_OBJ)/PRZCTFifoMemoryFlow.o : $(PATH_SRC)/PRZCTFifoMemoryFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCTFifoMemoryFlow.cpp
+
+$(PATH_OBJ)/PRZDelayConnection.o : $(PATH_SRC)/PRZDelayConnection.cpp
+	$(COMPILER) $(PATH_SRC)/PRZDelayConnection.cpp
+
+$(PATH_OBJ)/PRZDemultiplexor.o : $(PATH_SRC)/PRZDemultiplexor.cpp
+	$(COMPILER) $(PATH_SRC)/PRZDemultiplexor.cpp
+
+$(PATH_OBJ)/PRZDemultiplexorFlow.o : $(PATH_SRC)/PRZDemultiplexorFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZDemultiplexorFlow.cpp
+
+$(PATH_OBJ)/PRZError.o : $(PATH_SRC)/PRZError.cpp
+	$(COMPILER) $(PATH_SRC)/PRZError.cpp
+
+$(PATH_OBJ)/PRZEvent.o : $(PATH_SRC)/PRZEvent.cpp
+	$(COMPILER) $(PATH_SRC)/PRZEvent.cpp
+
+$(PATH_OBJ)/PRZFifoMemoryFlow.o : $(PATH_SRC)/PRZFifoMemoryFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZFifoMemoryFlow.cpp
+
+$(PATH_OBJ)/PRZFifoMuxedFlow.o : $(PATH_SRC)/PRZFifoMuxedFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZFifoMuxedFlow.cpp
+   
+$(PATH_OBJ)/PRZMultiportFifoFlow.o : $(PATH_SRC)/PRZMultiportFifoFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMultiportFifoFlow.cpp
+
+$(PATH_OBJ)/PRZMultiportFifo.o : $(PATH_SRC)/PRZMultiportFifo.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMultiportFifo.cpp
+
+$(PATH_OBJ)/PRZFifoMemory.o : $(PATH_SRC)/PRZFifoMemory.cpp
+	$(COMPILER) $(PATH_SRC)/PRZFifoMemory.cpp
+
+$(PATH_OBJ)/PRZFifoMuxed.o : $(PATH_SRC)/PRZFifoMuxed.cpp
+	$(COMPILER) $(PATH_SRC)/PRZFifoMuxed.cpp
+   
+$(PATH_OBJ)/PRZFicheroLog.o : $(PATH_SRC)/PRZFicheroLog.cpp
+	$(COMPILER) $(PATH_SRC)/PRZFicheroLog.cpp
+
+$(PATH_OBJ)/PRZFlow.o : $(PATH_SRC)/PRZFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZFlow.cpp
+
+$(PATH_OBJ)/PRZGauge.o : $(PATH_SRC)/PRZGauge.cpp
+	$(COMPILER) $(PATH_SRC)/PRZGauge.cpp
+
+$(PATH_OBJ)/PRZGlobalData.o : $(PATH_SRC)/PRZGlobalData.cpp
+	$(COMPILER) $(PATH_SRC)/PRZGlobalData.cpp
+
+$(PATH_OBJ)/PRZInjectorCTFlow.o : $(PATH_SRC)/PRZInjectorCTFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZInjectorCTFlow.cpp
+
+$(PATH_OBJ)/PRZInjectorFlow.o : $(PATH_SRC)/PRZInjectorFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZInjectorFlow.cpp
+
+$(PATH_OBJ)/PRZIniFile.o : $(PATH_SRC)/PRZIniFile.cpp
+	$(COMPILER) $(PATH_SRC)/PRZIniFile.cpp
+
+$(PATH_OBJ)/PRZInjector.o : $(PATH_SRC)/PRZInjector.cpp
+	$(COMPILER) $(PATH_SRC)/PRZInjector.cpp
+
+$(PATH_OBJ)/PRZInterfaz.o : $(PATH_SRC)/PRZInterfaz.cpp
+	$(COMPILER) $(PATH_SRC)/PRZInterfaz.cpp
+
+$(PATH_OBJ)/PRZInputPort.o : $(PATH_SRC)/PRZInputPort.cpp
+	$(COMPILER) $(PATH_SRC)/PRZInputPort.cpp
+
+$(PATH_OBJ)/PRZMain.o : $(PATH_SRC)/PRZMain.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMain.cpp
+
+$(PATH_OBJ)/PRZMultiplexorCVFlow.o : $(PATH_SRC)/PRZMultiplexorCVFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMultiplexorCVFlow.cpp
+
+$(PATH_OBJ)/PRZMultiplexorCVFlowCT.o : $(PATH_SRC)/PRZMultiplexorCVFlowCT.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMultiplexorCVFlowCT.cpp
+
+$(PATH_OBJ)/PRZMessage.o : $(PATH_SRC)/PRZMessage.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMessage.cpp
+
+$(PATH_OBJ)/PRZMultiplexorCV.o : $(PATH_SRC)/PRZMultiplexorCV.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMultiplexorCV.cpp
+
+$(PATH_OBJ)/PRZMultiplexorBufferCVFlow.o : $(PATH_SRC)/PRZMultiplexorBufferCVFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMultiplexorBufferCVFlow.cpp
+
+$(PATH_OBJ)/PRZNetworkBuilder.o : $(PATH_SRC)/PRZNetworkBuilder.cpp
+	$(COMPILER) $(PATH_SRC)/PRZNetworkBuilder.cpp
+
+$(PATH_OBJ)/PRZNetwork.o : $(PATH_SRC)/PRZNetwork.cpp
+	$(COMPILER) $(PATH_SRC)/PRZNetwork.cpp
+
+$(PATH_OBJ)/PRZNotifier.o : $(PATH_SRC)/PRZNotifier.cpp
+	$(COMPILER) $(PATH_SRC)/PRZNotifier.cpp
+
+$(PATH_OBJ)/PRZObserver.o : $(PATH_SRC)/PRZObserver.cpp
+	$(COMPILER) $(PATH_SRC)/PRZObserver.cpp
+
+$(PATH_OBJ)/PRZOutputPort.o : $(PATH_SRC)/PRZOutputPort.cpp
+	$(COMPILER) $(PATH_SRC)/PRZOutputPort.cpp
+
+$(PATH_OBJ)/PRZOptions.o : $(PATH_SRC)/PRZOptions.cpp
+	$(COMPILER) $(PATH_SRC)/PRZOptions.cpp
+
+$(PATH_OBJ)/PRZPort.o : $(PATH_SRC)/PRZPort.cpp
+	$(COMPILER) $(PATH_SRC)/PRZPort.cpp
+
+$(PATH_OBJ)/PRZPosition.o : $(PATH_SRC)/PRZPosition.cpp
+	$(COMPILER) $(PATH_SRC)/PRZPosition.cpp
+
+$(PATH_OBJ)/PRZRouting3DAdaptativeBurbleFlow.o : $(PATH_SRC)/PRZRouting3DAdaptativeBurbleFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouting3DAdaptativeBurbleFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlow.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlowMuxed.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMuxed.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMuxed.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlowMuxedFull.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMuxedFull.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMuxedFull.cpp
+   
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlowMuxedFullVirtual.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMuxedFullVirtual.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMuxedFullVirtual.cpp
+   
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleH1Flow.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleH1Flow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleH1Flow.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleH1VirtualFlow.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleH1VirtualFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleH1VirtualFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleH1DoubleVirtualFlow.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleH1DoubleVirtualFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleH1DoubleVirtualFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeCVSequentialH1Flow.o : $(PATH_SRC)/PRZRoutingAdaptativeCVSequentialH1Flow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeCVSequentialH1Flow.cpp
+	
+$(PATH_OBJ)/PRZRoutinAdapDoubleBurbleH1Flow.o : $(PATH_SRC)/PRZRoutinAdapDoubleBurbleH1Flow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutinAdapDoubleBurbleH1Flow.cpp
+	
+$(PATH_OBJ)/PRZRouting3DAdaptativeBurbleH1Flow.o : $(PATH_SRC)/PRZRouting3DAdaptativeBurbleH1Flow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouting3DAdaptativeBurbleH1Flow.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurble3CvFlow.o : $(PATH_SRC)/PRZRoutingAdaptativeBurble3CvFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurble3CvFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingBurbleFlow.o : $(PATH_SRC)/PRZRoutingBurbleFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingBurbleFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingBurbleFlowH1.o : $(PATH_SRC)/PRZRoutingBurbleFlowH1.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingBurbleFlowH1.cpp
+
+$(PATH_OBJ)/PRZRoutingBurbleFlowH1Virtual.o : $(PATH_SRC)/PRZRoutingBurbleFlowH1Virtual.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingBurbleFlowH1Virtual.cpp
+
+$(PATH_OBJ)/PRZRoutingBurbleFlowOB.o : $(PATH_SRC)/PRZRoutingBurbleFlowOB.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingBurbleFlowOB.cpp
+
+$(PATH_OBJ)/PRZRouting3DBurbleFlow.o : $(PATH_SRC)/PRZRouting3DBurbleFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouting3DBurbleFlow.cpp
+
+$(PATH_OBJ)/PRZRouterBuilder.o : $(PATH_SRC)/PRZRouterBuilder.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouterBuilder.cpp
+
+$(PATH_OBJ)/PRZRoutingCV2Flow.o : $(PATH_SRC)/PRZRoutingCV2Flow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingCV2Flow.cpp
+
+$(PATH_OBJ)/PRZRouting3DCVirtualFlow.o : $(PATH_SRC)/PRZRouting3DCVirtualFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouting3DCVirtualFlow.cpp
+
+$(PATH_OBJ)/PRZRouting3DAdaptativeCVFlow.o : $(PATH_SRC)/PRZRouting3DAdaptativeCVFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouting3DAdaptativeCVFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingAdapCV1RequestFlow.o : $(PATH_SRC)/PRZRoutingAdapCV1RequestFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdapCV1RequestFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingAdapCV1RequestFlow3d.o : $(PATH_SRC)/PRZRoutingAdapCV1RequestFlow3d.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdapCV1RequestFlow3d.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlowMR.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMR.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMR.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlowMRVirtual.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMRVirtual.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMRVirtual.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlowMRVirtualXY.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMRVirtualXY.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMRVirtualXY.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlowMRVirtualMaxCredits.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMRVirtualMaxCredits.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMRVirtualMaxCredits.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlowMRaleatorio.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMRaleatorio.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMRaleatorio.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlowMROB.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMROB.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlowMROB.cpp
+
+$(PATH_OBJ)/PRZRouting3DAdaptativeBurbleFlowMR.o : $(PATH_SRC)/PRZRouting3DAdaptativeBurbleFlowMR.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouting3DAdaptativeBurbleFlowMR.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeBurbleFlow1R.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlow1R.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlow1R.cpp
+
+$(PATH_OBJ)/PRZRouting3DAdaptativeBurbleFlow1R.o : $(PATH_SRC)/PRZRoutingAdaptativeBurbleFlow1R.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouting3DAdaptativeBurbleFlow1R.cpp
+
+$(PATH_OBJ)/PRZRoutingAdaptativeCVFlow.o : $(PATH_SRC)/PRZRoutingAdaptativeCVFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingAdaptativeCVFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingCVFlow.o : $(PATH_SRC)/PRZRoutingCVFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingCVFlow.cpp
+
+$(PATH_OBJ)/PRZRoutingFlow.o : $(PATH_SRC)/PRZRoutingFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingFlow.cpp
+
+$(PATH_OBJ)/PRZRouter.o : $(PATH_SRC)/PRZRouter.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouter.cpp
+
+$(PATH_OBJ)/PRZRouting.o : $(PATH_SRC)/PRZRouting.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRouting.cpp
+   
+$(PATH_OBJ)/PRZRoutingMuxed.o : $(PATH_SRC)/PRZRoutingMuxed.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRoutingMuxed.cpp
+ 
+$(PATH_OBJ)/PRZRunTimeInformation.o : $(PATH_SRC)/PRZRunTimeInformation.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRunTimeInformation.cpp
+
+$(PATH_OBJ)/PRZRunnableComponent.o : $(PATH_SRC)/PRZRunnableComponent.cpp
+	$(COMPILER) $(PATH_SRC)/PRZRunnableComponent.cpp
+
+$(PATH_OBJ)/PRZSimulationBuilder.o : $(PATH_SRC)/PRZSimulationBuilder.cpp
+	$(COMPILER) $(PATH_SRC)/PRZSimulationBuilder.cpp
+
+$(PATH_OBJ)/PRZSimulation.o : $(PATH_SRC)/PRZSimulation.cpp
+	$(COMPILER) $(PATH_SRC)/PRZSimulation.cpp
+
+$(PATH_OBJ)/PRZSimulationDual.o : $(PATH_SRC)/PRZSimulationDual.cpp
+	$(COMPILER) $(PATH_SRC)/PRZSimulationDual.cpp
+
+$(PATH_OBJ)/PRZString.o : $(PATH_SRC)/PRZString.cpp
+	$(COMPILER) $(PATH_SRC)/PRZString.cpp 
+
+$(PATH_OBJ)/PRZStringGz.o : $(PATH_SRC)/PRZStringGz.cpp
+	$(COMPILER) $(PATH_SRC)/PRZStringGz.cpp 
+
+$(PATH_OBJ)/PRZTag.o : $(PATH_SRC)/PRZTag.cpp
+	$(COMPILER) $(PATH_SRC)/PRZTag.cpp
+
+$(PATH_OBJ)/PRZTorusNetwork.o : $(PATH_SRC)/PRZTorusNetwork.cpp
+	$(COMPILER) $(PATH_SRC)/PRZTorusNetwork.cpp
+
+$(PATH_OBJ)/PRZMeshNetwork.o : $(PATH_SRC)/PRZMeshNetwork.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMeshNetwork.cpp
+
+$(PATH_OBJ)/PRZMidimewNetwork.o : $(PATH_SRC)/PRZMidimewNetwork.cpp
+	$(COMPILER) $(PATH_SRC)/PRZMidimewNetwork.cpp
+
+$(PATH_OBJ)/PRZNullNetwork.o : $(PATH_SRC)/PRZNullNetwork.cpp
+	$(COMPILER) $(PATH_SRC)/PRZNullNetwork.cpp
+
+$(PATH_OBJ)/PRZTrafficPattern.o : $(PATH_SRC)/PRZTrafficPattern.cpp
+	$(COMPILER) $(EXCL_SCT) $(PATH_SRC)/PRZTrafficPattern.cpp
+
+$(PATH_OBJ)/PRZTrafficPatternTrace.o : $(PATH_SRC)/PRZTrafficPatternTrace.cpp
+	$(COMPILER) $(PATH_SRC)/PRZTrafficPatternTrace.cpp
+
+$(PATH_OBJ)/PRZTrafficPatternTraceDualNet.o : $(PATH_SRC)/PRZTrafficPatternTraceDualNet.cpp
+	$(COMPILER) $(PATH_SRC)/PRZTrafficPatternTraceDualNet.cpp  
+ 
+$(PATH_OBJ)/PRZVCTFifoMemoryFlow.o : $(PATH_SRC)/PRZVCTFifoMemoryFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZVCTFifoMemoryFlow.cpp
+
+$(PATH_OBJ)/PRZWHFifoMemoryFlow.o : $(PATH_SRC)/PRZWHFifoMemoryFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZWHFifoMemoryFlow.cpp
+
+$(PATH_OBJ)/PRZCTFifoMuxedFlow.o : $(PATH_SRC)/PRZCTFifoMuxedFlow.cpp
+	$(COMPILER) $(PATH_SRC)/PRZCTFifoMuxedFlow.cpp
+# *************************************************************************
+
+xsimul: $(TARGET)
+	cd ../xsimul/mak; rm xsimul; make;cp xsimul ../../mak;
+
+# *************************************************************************
+
+clean:
+	rm -f -r $(PATH_OBJ)/ii_files
+	rm -f $(OBJS) $(PATH_OBJ)/przmain.o
+	rm -f $(TARGET)                  
+	rm -f $(ATC_DLL)
+	rm -f $(ATC_LIB)
+
+# *************************************************************************
+
+
+# fin del fichero

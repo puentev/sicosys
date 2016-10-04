@@ -1,0 +1,26 @@
+	if ( ! $?QTDIR ) then
+	    setenv QTDIR /usr/local/qt
+	endif
+	if ( $?PATH ) then
+	    setenv PATH $QTDIR/bin:$PATH
+	else
+	    setenv PATH $QTDIR/bin
+	endif
+	if ( $?MANPATH ) then
+	    setenv MANPATH $QTDIR/man:$MANPATH
+	else
+	    setenv MANPATH $QTDIR/man
+	endif
+	if ( $?LD_LIBRARY_PATH ) then
+	    setenv LD_LIBRARY_PATH $QTDIR/lib:$LD_LIBRARY_PATH	    
+	else
+	    setenv LD_LIBRARY_PATH $QTDIR/lib
+	endif
+	if ( ! $?LIBRARY_PATH ) then
+	    setenv LIBRARY_PATH $LD_LIBRARY_PATH
+	endif
+	if ( $?CPLUS_INCLUDE_PATH ) then
+	    setenv CPLUS_INCLUDE_PATH $QTDIR/include:$CPLUS_INCLUDE_PATH
+	else
+	    setenv CPLUS_INCLUDE_PATH $QTDIR/include
+	endif

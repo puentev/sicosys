@@ -1,0 +1,96 @@
+#**************************************************************************
+#
+# Fichero    : Makefile
+#
+# Comentarios: Fichero make para xsimul
+#
+# Autor      : Jose Miguel Prellezo Gutierrez
+#
+# $RCSfile: Makefile.std,v $
+#
+# $Date: 2001/10/08 05:43:08 $
+#
+# $Revision: 1.1.1.1 $
+#
+# $Log: Makefile.std,v $
+# Revision 1.1.1.1  2001/10/08 05:43:08  vpuente
+# Revision previa a SC2001
+#
+# Revision 1.1.1.1  2001/10/07 17:28:18  vpuente
+# Nuevo repositorio en marrajo 
+#
+# Revision 1.1.2.1  2001/06/04 13:59:54  esteban
+# Stephen haciendo los deberes desde Alemania:
+#   - Añadido BView y xbuffer
+#   - Compatibilidad con Linux de xbuffer y xsimul
+#   - Ejemplo del tutorial
+#   - y alguna que otra cosilla...
+#
+# Revision 1.1.1.1  2000/11/18 17:43:27  esteban
+# Al principio todo era un Caos...
+#
+#**************************************************************************
+
+PATH_QT      = /disco2/qt-1.41
+PATH_PRZ     = ../..
+PATH_PRZ_INC = $(PATH_PRZ)/inc -I/usr/freeware/include
+PATH_PRZ_LIB = $(PATH_PRZ)/mak -L../../lib
+PATH_INC     = ../inc
+PATH_SRC     = ../src
+PATH_OBJ     = ./OBJS
+TARGET       = xsimul
+
+CFLAGS = -n32 -c -O2 -woff 1174 -I$(PATH_QT)/include -I$(PATH_PRZ_INC) -I$(PATH_INC)
+LFLAGS = -n32 -O2 -L$(PATH_QT)/lib -L$(PATH_PRZ_LIB)  
+
+MOC      = $(PATH_QT)/bin/moc
+COMPILER = CC $(CFLAGS)
+LINKER   = CC $(LFLAGS)
+
+####### Files
+
+OBJS =  $(PATH_OBJ)/przdlg1.o  \
+        $(PATH_OBJ)/mprzdlg1.o \
+	     $(PATH_OBJ)/przdlg2.o  \
+	     $(PATH_OBJ)/mprzdlg2.o \
+		  $(PATH_OBJ)/xsimul.o   \
+		  $(PATH_OBJ)/mxsimul.o
+
+####### Build rules
+
+all: $(TARGET)
+
+$(TARGET): $(OBJS)
+	$(LINKER) -o $(TARGET) $(OBJS) -latcs -lqt -lm   -lz -lrwtool
+
+$(PATH_OBJ)/przdlg1.o: $(PATH_SRC)/przdlg1.cpp $(PATH_INC)/przdlg1.hpp
+	$(COMPILER) -o $(PATH_OBJ)/przdlg1.o $(PATH_SRC)/przdlg1.cpp
+
+$(PATH_OBJ)/mprzdlg1.o: $(PATH_SRC)/mprzdlg1.cpp
+	$(COMPILER) -o $(PATH_OBJ)/mprzdlg1.o $(PATH_SRC)/mprzdlg1.cpp
+
+$(PATH_OBJ)/przdlg2.o: $(PATH_SRC)/przdlg2.cpp $(PATH_INC)/przdlg2.hpp
+	$(COMPILER) -o $(PATH_OBJ)/przdlg2.o $(PATH_SRC)/przdlg2.cpp
+
+$(PATH_OBJ)/mprzdlg2.o: $(PATH_SRC)/mprzdlg2.cpp
+	$(COMPILER) -o $(PATH_OBJ)/mprzdlg2.o $(PATH_SRC)/mprzdlg2.cpp
+
+$(PATH_OBJ)/xsimul.o: $(PATH_SRC)/xsimul.cpp $(PATH_INC)/xsimul.hpp
+	$(COMPILER) -o $(PATH_OBJ)/xsimul.o $(PATH_SRC)/xsimul.cpp 
+
+$(PATH_OBJ)/mxsimul.o: $(PATH_SRC)/mxsimul.cpp
+	$(COMPILER) -o $(PATH_OBJ)/mxsimul.o $(PATH_SRC)/mxsimul.cpp 
+
+clean:
+	rm -f $(PATH_OBJ)/*.o 
+	rm -f $(TARGET)
+	rm -f -r $(PATH_OBJ)/ii_files
+	
+moc:
+	$(MOC) $(PATH_INC)/xsimul.hpp  > $(PATH_SRC)/mxsimul.cpp
+	$(MOC) $(PATH_INC)/przdlg1.hpp > $(PATH_SRC)/mprzdlg1.cpp
+	$(MOC) $(PATH_INC)/przdlg2.hpp > $(PATH_SRC)/mprzdlg2.cpp
+
+#**************************************************************************
+
+# fin del fichero

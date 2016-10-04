@@ -1,0 +1,303 @@
+#**************************************************************************
+#
+# Fichero    : Makefile.linux
+#
+# Comentarios: Fichero make para el ATCSimul Requiere gmake
+#              y gcc para funcionar con sistemas GNU/Linux
+#
+# Autor      : 
+#
+# $RCSfile: GNUMakefile,v $
+#
+# $Date: 2001/10/08 05:43:07 $
+#
+# $Revision: 1.1.1.1 $
+#
+# $Log: GNUMakefile,v $
+# Revision 1.1.1.1  2001/10/08 05:43:07  vpuente
+# Revision previa a SC2001
+#
+# Revision 1.1.1.1  2001/10/07 17:28:18  vpuente
+# Nuevo repositorio en marrajo 
+#
+# Revision 1.1.4.5  2001/07/05 17:17:43  vpuente
+# Soporte para redes irregulares: updown y updown adaptive
+#
+# Revision 1.1.1.1.4.17  2001/06/11 11:55:07  esteban
+# Problemilla con 'make depend' y posibilidad de anular el pool.
+#
+# Revision 1.1.1.1.4.16  2001/06/04 17:00:52  esteban
+# Makedepend para IRIX
+#
+# Revision 1.1.1.1.4.15  2001/06/04 13:59:53  esteban
+# Stephen haciendo los deberes desde Alemania:
+#   - Añadido BView y xbuffer
+#   - Compatibilidad con Linux de xbuffer y xsimul
+#   - Ejemplo del tutorial
+#   - y alguna que otra cosilla...
+#
+# Revision 1.1.1.1.4.14  2001/03/29 08:18:34  esteban
+# Nuevo router con bufferes a la salida y otras delicias... De momento solo
+# hace enrutamiento determinista, pero ya veremos en la proxima revision.
+#
+# Revision 1.1.1.1.4.13  2001/03/22 17:30:35  esteban
+# Creacion de un nuevo parametro alternativo a la carga que define la
+# probabilidiad de inyeccion.
+#
+# Revision 1.1.1.1.4.12  2001/03/19 15:48:28  esteban
+# Nueva red SquareMidimew (solo numero de nodos potencia par de 2)
+#
+# Revision 1.1.1.1.4.11  2001/03/07 17:02:48  esteban
+# Se incorpora SFSSimpleRouter, un nuevo componente para que se puedan
+# implementar routers con un solo componente. Todavia no funciona... pero
+# ya veremos en la proxima revision ;)
+#
+#
+#**************************************************************************
+
+# Compilacion para maquinas IRIX
+IRIX = YES
+# Integrar informacion de depuracion en el codigo final
+DEBUG = YES
+
+# Habilita el empleo de simulacion conducida por trazas. Por defecto dejarlo 
+#deshabilitado ya que hace que el simulador no sea completamente portable
+#USE_SCT = YES
+
+ifdef USE_SCT
+   INC1 = /usr/freeware/include
+   LIBS = -lz -lrwtool
+else
+   EXCL_SCT= -DNO_SCT
+endif
+#LIBS += -L/usr/lib
+LIBS += -lm
+PATH_INC  = ../inc  $(INC1) 
+PATH_SRC  = ../src
+PATH_LIB  = . -L../lib
+PATH_OBJ  = ./OBJS
+TARGET    = ATCSimul 
+ATC_DLL   = libatcs.so
+ATC_LIB   = libatcs.a
+#NO_POOL   = -DNO_POOL    # Utilizar new-delete (numero ilimitado de mensajes)
+                         # o utilizar pool (numero limitado de mensajes) 
+TRAZA     = -DNO_TRAZA   #trace off 
+UNPAQ     = #-DPAQ       #Solo se envian dos paquetes (nodo 0->1)
+UNIROUTER = #-DUNIROUTER #Compilado especial para probar un router aislado
+                         #con inyectores sinteticos en todos sus puertos.
+                         #no se asume en tiempo de compilacion. Simplemente
+                         #es para mejorar un poco el rendimiento (en lo inyec)
+# *************************************************************************
+
+VPATH = $(PATH_OBJ)
+# *************************************************************************
+ifdef IRIX
+CC = CC
+CDEBUG_OPTS = -n32  -c -g $(EXCL_SCT) $(TRAZA) $(NO_POOL) $(UNIROUTER) $(UNPAQ) -I$(PATH_INC) -woff 1682 -woff 1174 -o $@
+LDEBUG_OPTS = -n32  -g -L$(PATH_LIB) -o $(TARGET)  #-lmalloc_cv
+DDEBUG_OPTS = -n32  -shared -g -o $(ATC_DLL)
+
+CFAST_OPTS  = -n32  -c -O3 -r10000 -SWP:=ON -I$(PATH_INC) $(EXCL_SCT) $(TRAZA) $(NO_POOL) $(UNPAQ) $(UNIROUTER) -woff 1174 -woff 1682 -o $@
+LFAST_OPTS  = -n32  -O3 -IPA -r10000 -SWP:=ON -woff all -L$(PATH_LIB) -o $(TARGET)
+DFAST_OPTS  = -n32  -v -shared -O3 -r10000 -SWP:=ON -woff all -o $(ATC_DLL)
+MAKE_DEPEND = $(CC) -M -I$(PATH_INC) 
+else
+CC = gcc
+CDEBUG_OPTS = -c -g $(EXCL_SCT) $(TRAZA) $(NO_POOL) $(UNIROUTER) $(UNPAQ) -I$(PATH_INC) -o $@
+LDEBUG_OPTS = -g -L$(PATH_LIB) -o $(TARGET)   #-lmalloc_cv
+DDEBUG_OPTS = -shared -g -o $(ATC_DLL)
+
+CFAST_OPTS  = -c -O3 -I$(PATH_INC) $(EXCL_SCT) $(NO_POOL) $(TRAZA) $(UNPAQ) $(UNIROUTER) -o $@
+LFAST_OPTS  = -O3 -IPA -L$(PATH_LIB) -o $(TARGET)  
+DFAST_OPTS  = -v -shared -O3 all -o $(ATC_DLL)
+MAKE_DEPEND = $(CC) -P -M -I$(PATH_INC) 
+endif
+
+
+# *************************************************************************
+ifndef DEBUG
+   # Compilacion Optimizada
+   COMPILER   = $(CC) $(CFAST_OPTS)
+   LINKER     = $(CC) $(LFAST_OPTS)
+   DLL_LINKER = $(CC) $(DFAST_OPTS)
+else
+   # Compilacion para debugger
+   COMPILER   = $(CC) $(CDEBUG_OPTS)
+   LINKER     = $(CC) $(LDEBUG_OPTS)
+   DLL_BUILD  = $(CC) $(DDEBUG_OPTS)
+endif
+# *************************************************************************
+
+LIB_BUILD   = $(CC) -ar -o $(ATC_LIB)
+
+# *************************************************************************
+MODULES = ATCSimulator \
+          PRZAttribute  \
+          PRZBase  \
+          PRZBuilder  \
+          PRZCrossbarCTFlow \
+          PRZCrossbarFlow \
+          PRZCompositeComponent \
+          PRZConsumerFlow \
+          PRZComponentId \
+          PRZComponent \
+          PRZConnection \
+          PRZConst \
+          PRZConsumer \
+          PRZCrossbar \
+          PRZCTFifoMemoryFlow \
+          PRZDelayConnection \
+          PRZError \
+          PRZEvent \
+          PRZFifoMemory  \
+          PRZFicheroLog \
+          PRZFlow  \
+          PRZFifoMemoryFlow \
+          PRZGauge \
+          PRZGlobalData \
+          PRZIniFile   \
+          PRZInjectorCTFlow \
+          PRZInjectorFlow \
+          PRZInjector \
+          PRZInterfaz \
+          PRZInputPort \
+          PRZMessage  \
+          PRZNetworkBuilder \
+          PRZNetwork   \
+          PRZNotifier \
+          PRZObserver \
+          PRZOutputPort \
+          PRZOptions   \
+          PRZPort  \
+          PRZPosition   \
+          PRZRoutingBurbleFlow \
+          PRZRoutingBurbleFlowH1 \
+          PRZRouterBuilder \
+          PRZRoutingFlow \
+          PRZRouter \
+          PRZRouting \
+          PRZRunTimeInformation  \
+          PRZRunnableComponent \
+          PRZSimulationBuilder \
+          PRZSimulation \
+          PRZSimulationDual \
+          PRZStringGz \
+          PRZTag   \
+          PRZTorusNetwork \
+          PRZMeshNetwork \
+          PRZNullNetwork \
+          PRZIrregularNetwork \
+          PRZTrafficPattern \
+          PRZString \
+          PRZWHFifoMemoryFlow \
+          PRZRoutingCVFlow \
+          PRZMultiplexorCV \
+          PRZMultiplexorCVFlow \
+          PRZRoutingAdaptativeBurbleH1Flow \
+          PRZRoutingFlowUpdown \
+          PRZRoutingFlowUpdownAdap \
+          PRZCrossbarMuxFlow \
+          PRZRoutingBurbleFlowH1Virtual \
+          PRZCrossbarCTFlowMux \
+          PRZRoutingAdaptativeBurbleH1VirtualFlow \
+          PRZRoutingAdapCV1RequestFlow \
+          PRZCrossbarMRequestSingleWHFlow \
+          PRZFifoMuxed \
+          PRZFifoMuxedFlow \
+          PRZCTFifoMuxedFlow \
+          PRZRoutingMuxed \
+          PRZRoutingAdaptativeBurbleFlowMuxedFullVirtual \
+          PRZRoutingAdaptativeBurbleFlowMuxed \
+          PRZRoutingAdaptativeBurbleFlowMRVirtualMaxCredits \
+          PRZRoutingAdaptativeBurbleFlowMRVirtual \
+          PRZRoutingAdaptativeBurbleFlowMR \
+          PRZMultiportFifo \
+          PRZMultiportFifoFlow \
+          PRZMultiportFifoNoFragFlow \
+          PRZCrossbarMRequestFlowCTOutBuffResumedVirtual \
+          PRZCrossbarMRequestFlowCTOutBuffResumed \
+          PRZMultiplexorCVFlowCT \
+	  PRZMidimewNetwork \
+	  PRZSquareMidimewNetwork \
+	  SFSSimpleRouter \
+	  SFSSimpleRouterFlow \
+	  SFSSimpleRouterAdaptativeBurbleFlowMRVirtualMaxCredits \
+	  TUTTrafficPatternJump
+       
+ifdef USE_SCT
+MODULES +=	\
+          PRZTrafficPatternTrace \
+          PRZStringGz \
+          PRZTrafficPatternTraceDualNet 
+endif	
+
+OBJS = $(addsuffix .o, $(MODULES)) 
+
+# *************************************************************************
+
+$(TARGET): PRZMain.o $(ATC_LIB)
+	@echo
+	@echo Building executable...
+	$(LINKER) $(PATH_OBJ)/PRZMain.o -latcs $(LIBS)
+	@echo
+	@echo Good luck !
+	@echo
+
+$(ATC_DLL): $(OBJS) PRZMain.o
+	@echo 
+	@echo Building shared library...
+	$(DLL_BUILD) $(addprefix $(PATH_OBJ), $(OBJS))
+	@echo Building executable...
+	$(LINKER) $(PATH_OBJ)/PRZMain.o $(ATC_DLL) $(LIBS)
+	@echo
+	@echo Good luck !
+	@echo
+
+
+ifdef IRIX
+$(ATC_LIB): $(OBJS)  
+	@echo 
+	@echo Building static library...
+	$(LIB_BUILD) $(addprefix $(PATH_OBJ)/,$(OBJS)) 
+else
+$(ATC_LIB): $(OBJS)  
+	@echo 
+	@echo Building static library...
+	rm -f $(ATC_LIB)
+	ar clq $(ATC_LIB) $(addprefix $(PATH_OBJ)/, $(OBJS))
+	ranlib $(ATC_LIB)
+endif
+dll: $(ATC_DLL)
+
+lib: $(TARGET)
+
+depend:
+	$(MAKE_DEPEND) $(addprefix $(PATH_SRC)/,$(addsuffix .cpp,$(MODULES))) > Makedepend
+	
+# *************************************************************************
+
+include Makedepend
+
+# *************************************************************************
+
+%.o : $(PATH_SRC)/%.cpp
+	$(COMPILER) -o $(PATH_OBJ)/$@ $<
+
+# *************************************************************************
+
+xsimul: $(ATC_LIB)
+	cd ../xsimul/mak; rm xsimul; make;cp xsimul ../../mak;
+
+# *************************************************************************
+
+clean:
+	rm -f -r $(PATH_OBJ)/ii_files
+	rm -f $(PATH_OBJ)/*.o $(PATH_OBJ)/PRZMain.o
+	rm -f $(TARGET)                  
+	rm -f $(ATC_DLL)
+	rm -f $(ATC_LIB)
+
+# *************************************************************************
+
+
+# fin del fichero

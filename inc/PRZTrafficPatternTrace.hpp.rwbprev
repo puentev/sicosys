@@ -1,0 +1,148 @@
+//*************************************************************************
+//
+// Fichero    : prztrafi.hpp
+//
+// Descripcion: fichero de encabezado de la clase "PRZTrafficPatternTrace"
+//
+// Comentarios: Intento construir la clase de simulacion conducida por 
+//              trazas condicionadas
+//
+// Autor:        
+//
+// $RCSfile: PRZTrafficPatternTrace.hpp.rwbprev,v $
+//
+// $Date: 2001/10/08 05:43:07 $
+//
+// $Revision: 1.1.1.1 $
+//
+// $Log: PRZTrafficPatternTrace.hpp.rwbprev,v $
+// Revision 1.1.1.1  2001/10/08 05:43:07  vpuente
+// Revision previa a SC2001
+//
+// Revision 1.1.1.1  2001/10/07 17:28:17  vpuente
+// Nuevo repositorio en marrajo 
+//
+// Revision 1.1.1.1  2000/11/18 17:43:25  esteban
+// Al principio todo era un Caos...
+//
+// Revision 1.1  2000/05/18 17:47:54  vpuente
+// Initial revision
+//
+//*************************************************************************
+
+#ifndef __PRZTrafficPatternTrace_HPP__
+#define __PRZTrafficPatternTrace_HPP__
+#endif
+//************************************************************************
+   #include <stdlib.h>
+	#include <zlib.h>
+   #include <PRZStringGz.hpp>
+
+   #ifndef __PRZTrafficPattern__HPP__
+   #include <PRZTrafficPattern.hpp>
+   #endif
+
+   #ifndef __PRZRunTimeInformation_HPP__
+   #include <PRZRunTimeInformation.hpp>
+   #endif
+
+   #ifndef __PRZString_HPP__
+   #include <PRZString.hpp>
+   #endif
+
+   #ifndef __PRZMessage_HPP__
+   #include <PRZMessage.hpp>
+   #endif
+
+   #ifndef __PRZSimulation_HPP__
+   #include <PRZSimulation.hpp>
+   #endif
+   
+   #ifndef __PRZSequence_HPP__
+   #include <PRZSequence.hpp>
+   #endif
+   
+   //Estructura en la que voy a almacenar cada una de las trazas de
+   //enviados y recibidos por cada procesador
+   //origen o destino, etiqueta del mensaje y tiempo de emision despues de la
+   //recepcion del mensaje bloqueante y el tamaño del mensaje. Todos estos datos son facilmente 
+   //extraibles a partir de las trazas generadas por rsim
+   //empleando un script perl sencillo 
+   
+   //Formato:
+   // destino tag tamaño AfterTime Etiqueta_del_mensaje_de disparo
+   //
+   class msgAtTraceInfo
+   {
+      public:
+      int src;
+      int       dest;
+      int long tag;
+      int       size;
+      int long      afterTime;
+      int long       msgThr;
+      int       type;
+      int       counter;
+      int       myId;
+   } ;
+   
+   //typedef PRZPair <int,PRZString,int,int,PRZString> Msg;
+   typedef PRZSequence<msgAtTraceInfo*> traceMem;
+
+   
+ class PRZTrafficPatternTrace : public PRZTrafficPattern
+   {
+      typedef PRZTrafficPattern Inhereited;   
+   public:
+      PRZTrafficPatternTrace(const PRZString& fileName, PRZSimulation& s, 
+         								  Boolean compress,float clock);
+      ~PRZTrafficPatternTrace( );
+      virtual Boolean injectMessage(const PRZPosition& src=PRZPosition(0,0,0));
+      virtual PRZString asString() const 
+      { return PRZString("File=") + m_FileName; }
+      Boolean   inittrace();
+      
+      void setClock(float clock)
+      { m_clock=clock;}
+      
+      float getClock()
+      {return m_clock;}
+      
+      DEFINE_RTTI(PRZTrafficPatternTrace);
+   private:
+      void actualizaPool(msgAtTraceInfo *msgRcv);
+      PRZMessage m_Message;
+      PRZString  m_FileName;
+      ifstream*  m_File;
+      gzFile	  m_FileCompress;
+      //Arrays que mantienen la traza de enviados y recibidos
+      //Correccion:
+      //  Los recividos no los necesito para nada. LA traza ya incorpora toda la
+      //  informacion necesaria
+      //
+      //  El separalos en dos estructuras de request y reply no tiene ningun
+      //  sentido (en principio) y lo unico que me puede hacer es 
+      //  complicar la vida. Con el campo typo de los registros me vale
+      //
+      //  Con una sola estructura de datos me sirve
+      //
+      //traceMem *m_sendMsgRequest;
+      //traceMem *m_recvMsgRequest;
+      //traceMem *m_sendMsgReply;
+      //traceMem *m_recvMsgReply;
+      
+      traceMem   *m_sendMsg;
+      
+      
+      //Estructuras de datos en las que copio los mensajes listos
+      // para ser enviados pero que han de esperar el reloj.
+      traceMem m_readyToGo;
+      unsigned m_x;
+      unsigned m_y;
+      unsigned m_z;
+      unsigned m_numberMsgs;
+      Boolean  m_compress;
+      float m_clock;
+      unsigned long m_lastTime;
+      
+   };
